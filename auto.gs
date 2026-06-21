@@ -1,6 +1,6 @@
 // ========== auto.gs ==========
 // งานอัปเดตฐานข้อมูลหมายจับจากรายการแก้ไขใน processing
-/*
+
 function autoUpdateWarrantDatabase() {
   return withScriptLock_(() => autoUpdateWarrantDatabase_());
 }
@@ -72,4 +72,3 @@ function mapProcessingWarrantStatus_(status) {
   }
   return cleanStatus;
 }
-*/

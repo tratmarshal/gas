@@ -29,7 +29,7 @@ function addProcessRecord(userId, payload) {
     const selectedWarrants = payload.selectedWarrants || [];
     if (!selectedWarrants.length) throw new Error("กรุณาเลือกหมายจับอย่างน้อย 1 รายการ");
 
-    validateReason_(payload.reason, payload.reasonDetail);
+    validateReason_(payload.endReason, payload.reasonDetail);
 
     const sheet = ensureProcessingSheet_();
     let nextSeq = getNextProcessSeq_(sheet);
@@ -41,25 +41,15 @@ function addProcessRecord(userId, payload) {
       if (seenWarrantNos[warrantNo]) throw new Error(`เลือกเลขที่หมายจับซ้ำ: ${warrantNo}`);
       seenWarrantNos[warrantNo] = true;
 
-      const matches = findWarrantByNo_(warrantNo);
-      if (matches.length === 0) throw new Error(`ไม่พบหมายจับเลขที่ ${warrantNo}`);
-      if (matches.length > 1) throw new Error(`พบเลขที่หมายจับซ้ำในฐานข้อมูล: ${warrantNo}`);
-
-      const found = matches[0];
-      const currentStatus = normalizeText_(found.row[found.columns.status]) || WARRANT_STATUS_WANTED;
-      if (currentStatus !== WARRANT_STATUS_WANTED) {
-        throw new Error(`หมายจับ ${warrantNo} อยู่ในสถานะ ${currentStatus} ไม่สามารถบันทึกการได้ตัวซ้ำได้`);
-      }
-
       rows.push([
         nowText(),
         userId,
         warrantNo,
-        normalizeText_(found.row[found.columns.fullName]),
-        normalizeText_(found.row[found.columns.bail]) || "-",
-        normalizeText_(payload.submitTo || found.row[found.columns.submitTo]),
-        normalizeText_(payload.caseStatus) || CASE_STATUS_SUBMITTED_TO_COURT,
-        normalizeText_(payload.reason),
+        normalizeText_(item.defendantName || payload.defendantName || ""),
+        normalizeText_(item.bail) || "-",
+        normalizeText_(payload.proposedTo || item.submitTo || ""),
+        CASE_STATUS_SUBMITTED_TO_COURT,
+        normalizeText_(payload.endReason),
         normalizeText_(payload.reasonDetail),
         PROCESSING_WARRANT_STATUS_PENDING_REVOCATION,
         SYNC_STATUS_PENDING,
@@ -71,37 +61,13 @@ function addProcessRecord(userId, payload) {
 
     sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, PROCESSING_HEADERS.length).setValues(rows);
 
-    const syncResult = autoUpdateWarrantDatabase_();
-    return { success: true, added: rows.length, sync: syncResult };
+    clearPendingProcessCache_();
+    return { success: true, added: rows.length, sync: { success: true, pending: true } };
   });
 }
 
 function getPendingProcess() {
-  const sheet = ensureProcessingSheet_();
-  const values = sheet.getDataRange().getValues();
-  const list = [];
-  for (let r = 1; r < values.length; r++) {
-    const row = values[r];
-    list.push({
-      rowId: r + 1,
-      timestamp: row[0],
-      userId: row[1],
-      warrantNo: row[2],
-      fullName: row[3],
-      bail: row[4],
-      submitTo: row[5],
-      caseStatus: row[6],
-      reason: row[7],
-      reasonDetail: row[8],
-      warrantStatus: row[9],
-      syncStatus: row[10] || SYNC_STATUS_PENDING,
-      syncedAt: row[11],
-      syncError: row[12],
-      processSeq: row[13]
-    });
-  }
-  list.reverse();
-  return { success: true, data: list };
+  return { success: true, data: getCachedPendingProcess_() };
 }
 
 function markProcessRevoked(rowId, userId) {
@@ -126,7 +92,7 @@ function markProcessRevoked(rowId, userId) {
     if (currentStatus !== WARRANT_STATUS_PENDING_REVOCATION) throw new Error(`สถานะปัจจุบันคือ ${currentStatus} จึงเพิกถอนไม่ได้`);
 
     found.sheet.getRange(found.rowNumber, found.columns.status + 1).setValue(WARRANT_STATUS_REVOKED);
-    clearWarrantCache_();
+    clearPendingProcessCache_();
     processSheet.getRange(rowNumber, 7).setValue(CASE_STATUS_WAITING_FORWARD);
     processSheet.getRange(rowNumber, 10).setValue(WARRANT_STATUS_REVOKED);
     processSheet.getRange(rowNumber, 11).setValue(SYNC_STATUS_SYNCED);
@@ -151,6 +117,7 @@ function markProcessForwarded(rowId, userId) {
     if (processStatus !== WARRANT_STATUS_REVOKED) throw new Error("ส่งต่อได้เฉพาะรายการที่เพิกถอนแล้ว");
 
     processSheet.getRange(rowNumber, 7).setValue(CASE_STATUS_FORWARDED);
+    clearPendingProcessCache_();
     return { success: true };
   });
 }

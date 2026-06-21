@@ -15,7 +15,7 @@ function nowText() {
   return Utilities.formatDate(new Date(), "Asia/Bangkok", "yyyy-MM-dd HH:mm:ss");
 }
 
-function normalizeText_(value) {a
+function normalizeText_(value) {
   return String(value == null ? "" : value).trim();
 }
 

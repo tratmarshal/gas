@@ -3,11 +3,10 @@
 
 const LIFF_CHANNEL_ID = "2010272973-6qo1suX2";
 
-// ใส่ LINE User ID ของเจ้าหน้าที่ตำรวจศาล 2 คน
-const AUTHORIZED_USERS = [
-  "Uc5330e8eee2ff8ab298c7019ef377965", // เจ้าหน้าที่คนที่ 1
-  "Udfa6e5b6d090d77b835483f6bd683d6f"  // เจ้าหน้าที่คนที่ 2
-];
+// ตั้งค่าชีตและแคชสำหรับระบบยืนยันตัวตน
+const SHEET_USERS = "users";
+const USER_CACHE_KEY = "authorizedUsers:v1";
+const USER_CACHE_TTL_SECONDS = 600;
 
 // ID ของ Google Sheets แต่ละฐานข้อมูล
 const WARRANT_DB_ID = "1sq8GyDDiqS2U989TpcTlMyJ5P9gtrRTgbJjcQHtEOB4";
@@ -29,7 +28,19 @@ const CASE_STATUS_FORWARDED = "ส่งต่อแล้ว";
 
 const PROCESSING_WARRANT_STATUS_PENDING_REVOCATION = "รอเพิกถอน";
 
-const REASON_OPTIONS = ["มอบตัว", "ตำรวจจับ", "อยู่เรือนจำอื่น", "อื่น ๆ"];
+const REASON_OPTIONS = [
+  "จำเลยมาศาลตามนัด",
+  "จำเลยมาศาลและศาลอนุญาตให้ปล่อยชั่วคราว",
+  "จับตัวจำเลยได้",
+  "อายัดตัวจำเลยได้",
+  "จับผู้ต้องหาได้",
+  "ถอนหมายจับ",
+  "ถอนฟ้อง/ถอนคำร้องทุกข์",
+  "ขาดอายุความ",
+  "จำเลยเสียชีวิต",
+  "คดีถึงที่สุด",
+  "อื่น ๆ"
+];
 
 const SYNC_STATUS_PENDING = "pending";
 const SYNC_STATUS_SYNCED = "synced";

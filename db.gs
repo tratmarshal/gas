@@ -1,6 +1,6 @@
 // ========== db.gs ==========
 // ฟังก์ชันเข้าถึง Google Sheets
-/*
+
 function getWarrantDB() {
   return SpreadsheetApp.openById(WARRANT_DB_ID);
 }
@@ -66,16 +66,34 @@ function getWarrantSheets_() {
 function findWarrantByNo_(warrantNo) {
   const target = normalizeText_(warrantNo);
   const matches = [];
-  getWarrantSheets_().forEach(sheet => {
-    const values = sheet.getDataRange().getValues();
-    if (values.length < 2) return;
-    const columns = getWarrantColumnMap_(values[0]);
-    for (let r = 1; r < values.length; r++) {
-      if (normalizeText_(values[r][columns.warrantNo]) === target) {
-        matches.push({ sheet, rowNumber: r + 1, row: values[r], columns });
+  if (!target) return matches;
+
+  const db = getWarrantDB();
+  const cells = db.createTextFinder(target).findAll();
+
+  cells.forEach(cell => {
+    const sheet = cell.getSheet();
+    const sheetName = sheet.getName();
+    const year = Number(sheetName);
+
+    if (year >= WARRANT_SHEET_START && year <= WARRANT_SHEET_END) {
+      const rowNum = cell.getRow();
+      const colNum = cell.getColumn();
+      if (rowNum > 1) {
+        const lastCol = sheet.getLastColumn();
+        if (lastCol < 1) return;
+
+        const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+        const columns = getWarrantColumnMap_(headers);
+
+        if (colNum === columns.warrantNo + 1) {
+          const rowValues = sheet.getRange(rowNum, 1, 1, lastCol).getValues()[0];
+          if (normalizeText_(rowValues[columns.warrantNo]) === target) {
+            matches.push({ sheet, rowNumber: rowNum, row: rowValues, columns });
+          }
+        }
       }
     }
   });
   return matches;
 }
-*/

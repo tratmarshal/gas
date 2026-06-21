@@ -30,7 +30,7 @@ function doPost(e) {
     let result;
     switch (action) {
       case "search":
-        result = searchWarrant(payload.query);
+        result = searchWarrant(payload.keyword);
         break;
       case "getPending":
         result = getPendingProcess();

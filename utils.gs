@@ -1,11 +1,30 @@
-/**
- * ฟังก์ชันช่วยจัดการปรับแต่งข้อความ คลีนข้อมูล และจัดการเวลาทั่วไป
- */
-function normalizeText(text) {
-  if (!text) return "";
-  return String(text).trim();
+// ========== utils.gs ==========
+// ฟังก์ชันช่วยเหลือภายใน backend
+
+function withScriptLock_(callback) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(LOCK_WAIT_MS);
+  try {
+    return callback();
+  } finally {
+    lock.releaseLock();
+  }
 }
 
-function formatThaiDateTime(date) {
-  return Utilities.formatDate(date, "GMT+7", "yyyy-MM-dd HH:mm:ss");
+function nowText() {
+  return Utilities.formatDate(new Date(), "Asia/Bangkok", "yyyy-MM-dd HH:mm:ss");
+}
+
+function normalizeText_(value) {a
+  return String(value == null ? "" : value).trim();
+}
+
+function indexOfHeader(headers, possibleNames, fallbackIndex) {
+  for (let i = 0; i < headers.length; i++) {
+    const h = normalizeText_(headers[i]);
+    for (let name of possibleNames) {
+      if (h === name || h.indexOf(name) !== -1) return i;
+    }
+  }
+  return fallbackIndex;
 }

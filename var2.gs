@@ -1,13 +1,9 @@
 // ========== var.gs ==========
 // ตั้งค่าระบบหลัก
+/*
 
-const LIFF_CHANNEL_ID = "2010272973-6qo1suX2";
-
-// ใส่ LINE User ID ของเจ้าหน้าที่ตำรวจศาล 2 คน
-const AUTHORIZED_USERS = [
-  "Uc5330e8eee2ff8ab298c7019ef377965", // เจ้าหน้าที่คนที่ 1
-  "Udfa6e5b6d090d77b835483f6bd683d6f"  // เจ้าหน้าที่คนที่ 2
-];
+// ชื่อ sheet สำหรับเก็บผู้ใช้งานที่ได้รับอนุญาต
+const AUTHORIZED_USERS_SHEET = "authorized_users";
 
 // ID ของ Google Sheets แต่ละฐานข้อมูล
 const WARRANT_DB_ID = "1sq8GyDDiqS2U989TpcTlMyJ5P9gtrRTgbJjcQHtEOB4";
@@ -63,3 +59,4 @@ const LOG_HEADERS = [
   "สถานะสิทธิ์",
   "รายละเอียด"
 ];
+*/

@@ -1,19 +1,9 @@
-/**
- * ค้นหาข้อมูลหมายจับและข้อมูลจำเลย โดยอ่านผ่าน Cache ชั้นแรก
- * @param {Object} criteria เงื่อนไขการค้นหา เช่น { nationalId: '...', warrantNo: '...' }
- * @return {Array<Object>} รายการหมายจับที่ตรงตามเงื่อนไข
- */
-function searchWarrants(criteria) {
-  logActivity('searchWarrants', `ค้นหาหมายจับด้วยเงื่อนไข: ${JSON.stringify(criteria)}`, 'หน้าค้นหา');
-  
-  //ดึงข้อมูลทั้งหมดจาก Cache (ถ้าไม่มีจะโหลดจาก Spreadsheet อัตโนมัติ)
-  const masterWarrants = getWarrantDataCache();
-  
-  // ทำการ Filter ข้อมูลตามเงื่อนไขที่ส่งมา
-  return masterWarrants.filter(warrant => {
-    let match = true;
-    if (criteria.warrantNo && warrant.warrantNo !== criteria.warrantNo) match = false;
-    if (criteria.defendantName && !warrant.defendantName.includes(criteria.defendantName)) match = false;
-    return match;
-  });
+function searchWarrant(query) {
+  const term = normalizeText_(query);
+  if (!term) return { success: true, data: [] };
+
+  // ตรวจสอบอัตโนมัติ: ถ้าพิมพ์เป็นตัวเลขทั้งหมดและยาว 13 หลัก ให้เป็น id13 นอกนั้นถือว่าเป็นชื่อ (name)
+  const searchType = (/^\d{13}$/.test(term)) ? "id13" : "name";
+
+  return { success: true, data: getCachedWarrantSearch_(searchType, term) };
 }

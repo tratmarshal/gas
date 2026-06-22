@@ -1,4 +1,4 @@
-// ========== utils.gs ==========
+/*// ========== utils.gs ==========
 // ฟังก์ชันช่วยเหลือภายใน backend
 
 function withScriptLock_(callback) {
@@ -28,3 +28,4 @@ function indexOfHeader(headers, possibleNames, fallbackIndex) {
   }
   return fallbackIndex;
 }
+*/

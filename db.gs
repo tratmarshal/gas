@@ -1,4 +1,4 @@
-// ========== db.gs ==========
+/*// ========== db.gs ==========
 // ฟังก์ชันเข้าถึง Google Sheets
 
 function getWarrantDB() {
@@ -97,3 +97,69 @@ function findWarrantByNo_(warrantNo) {
   });
   return matches;
 }
+
+// ========== Diagnostic Functions ==========
+// ฟังก์ชันช่วยตรวจสอบปัญหาของระบบ (ใช้ใน Google Apps Script console)
+
+function diagnoseSystem() {
+  const report = {
+    timestamp: nowText(),
+    databases: {},
+    sheets: {},
+    errors: []
+  };
+  
+  // ตรวจสอบ warrant database
+  try {
+    const warrantDb = getWarrantDB();
+    report.databases.warrant = {
+      id: WARRANT_DB_ID,
+      accessible: true,
+      sheets: warrantDb.getSheets().map(s => ({ name: s.getName(), rows: s.getLastRow() }))
+    };
+  } catch (err) {
+    report.errors.push(`Warrant DB error: ${err.message}`);
+    report.databases.warrant = { accessible: false, error: err.message };
+  }
+  
+  // ตรวจสอบ update database
+  try {
+    const updateDb = getUpdateDB();
+    report.databases.update = {
+      id: UPDATE_DB_ID,
+      accessible: true,
+      sheets: updateDb.getSheets().map(s => ({ name: s.getName(), rows: s.getLastRow() }))
+    };
+  } catch (err) {
+    report.errors.push(`Update DB error: ${err.message}`);
+    report.databases.update = { accessible: false, error: err.message };
+  }
+  
+  // ตรวจสอบ processing sheet
+  try {
+    const sheet = ensureProcessingSheet_();
+    report.sheets.processing = {
+      exists: true,
+      lastRow: sheet.getLastRow(),
+      lastColumn: sheet.getLastColumn(),
+      headers: sheet.getRange(1, 1, 1, PROCESSING_HEADERS.length).getValues()[0]
+    };
+  } catch (err) {
+    report.errors.push(`Processing sheet error: ${err.message}`);
+    report.sheets.processing = { exists: false, error: err.message };
+  }
+  
+  return report;
+}
+
+function testGetPendingProcess() {
+  console.log("Testing getPendingProcess...");
+  try {
+    const result = getPendingProcess();
+    console.log("Result:", JSON.stringify(result, null, 2));
+    return result;
+  } catch (err) {
+    console.error("Test failed:", err);
+    return { success: false, error: err.message };
+  }
+}*/

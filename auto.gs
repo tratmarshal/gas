@@ -1,4 +1,4 @@
-// ========== auto.gs ==========
+/*// ========== auto.gs ==========
 // งานอัปเดตฐานข้อมูลหมายจับจากรายการแก้ไขใน processing
 
 function autoUpdateWarrantDatabase() {
@@ -64,11 +64,24 @@ function autoUpdateWarrantDatabase_() {
 
 function mapProcessingWarrantStatus_(status) {
   const cleanStatus = normalizeText_(status);
-  if (!cleanStatus || cleanStatus === PROCESSING_WARRANT_STATUS_PENDING_REVOCATION) {
+  
+  // ค่าใน processing sheet ที่ต้องแปลงเป็น ค่าหลัก
+  // "รอเพิกถอน" (processing) → "สิ้นผลรอเพิกถอน" (warrant db)
+  if (cleanStatus === PROCESSING_WARRANT_STATUS_PENDING_REVOCATION) {
     return WARRANT_STATUS_PENDING_REVOCATION;
   }
-  if (cleanStatus === WARRANT_STATUS_PENDING_REVOCATION) {
+  
+  // ค่าจากการ update โดยตรง (markProcessRevoked)
+  // "เพิกถอน" → "เพิกถอน" (ไม่ต้องแปลง)
+  if (cleanStatus === WARRANT_STATUS_REVOKED) {
+    return WARRANT_STATUS_REVOKED;
+  }
+  
+  // ถ้าค่าว่าง ให้ใช้ค่า pending revocation
+  if (!cleanStatus) {
     return WARRANT_STATUS_PENDING_REVOCATION;
   }
+  
+  // ค่าอื่นๆ ตรงไป (ข้อผิดพลาด)
   return cleanStatus;
-}
+}*/

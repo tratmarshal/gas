@@ -1,4 +1,4 @@
-// ========== code.gs ==========
+/*// ========== code.gs ==========
 // Web App API Gateway
 
 function doPost(e) {
@@ -69,3 +69,4 @@ function jsonResponse_(data) {
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
 }
+*/

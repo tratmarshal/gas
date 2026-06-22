@@ -1,4 +1,4 @@
-// ========== auth.gs ==========
+/*// ========== auth.gs ==========
 // ตรวจสอบสิทธิ์เจ้าหน้าที่ตำรวจศาล (อ่านจากชีต users ในฐานข้อมูลอัปเดต)
 
 function getAuthorizedUserIds_() {
@@ -48,3 +48,4 @@ function clearUserCache_() {
     console.warn("failed to clear user cache", e);
   }
 }
+*/

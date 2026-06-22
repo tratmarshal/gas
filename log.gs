@@ -1,4 +1,4 @@
-// ========== log.gs ==========
+/*// ========== log.gs ==========
 // บันทึกประวัติการใช้งานของเจ้าหน้าที่
 
 function logActivity(userId, displayName, page, action, authStatus, detail) {
@@ -18,3 +18,4 @@ function logActivity(userId, displayName, page, action, authStatus, detail) {
   }
 }
 
+*/

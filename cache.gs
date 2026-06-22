@@ -1,27 +1,37 @@
-// ========== cache.gs ==========
+/*// ========== cache.gs ==========
 // ชั้นอ่านข้อมูลเร็วภายใน backend
 
 const PENDING_PROCESS_CACHE_KEY = "pendingProcess:v1";
 const PENDING_PROCESS_CACHE_TTL_SECONDS = 600; // 10 minutes
 
-function getCachedPendingProcess_() {
-  const cache = CacheService.getScriptCache();
-  const cached = cache.get(PENDING_PROCESS_CACHE_KEY);
-  if (cached) {
-    try {
-      return JSON.parse(cached);
-    } catch (err) {
-      cache.remove(PENDING_PROCESS_CACHE_KEY);
-    }
-  }
+const WARRANT_SEARCH_CACHE_KEY = "warrantSearch:v1";
+const WARRANT_SEARCH_CACHE_TTL_SECONDS = 300; // 5 minutes
 
-  const results = loadPendingProcessFromSheets_();
+function getCachedPendingProcess_() {
   try {
-    cache.put(PENDING_PROCESS_CACHE_KEY, JSON.stringify(results), PENDING_PROCESS_CACHE_TTL_SECONDS);
+    const cache = CacheService.getScriptCache();
+    const cached = cache.get(PENDING_PROCESS_CACHE_KEY);
+    
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (err) {
+        console.warn("Cache parse error, clearing and reloading", err);
+        cache.remove(PENDING_PROCESS_CACHE_KEY);
+      }
+    }
+
+    const results = loadPendingProcessFromSheets_();
+    try {
+      cache.put(PENDING_PROCESS_CACHE_KEY, JSON.stringify(results), PENDING_PROCESS_CACHE_TTL_SECONDS);
+    } catch (err) {
+      console.warn("pending process cache skipped", err);
+    }
+    return results;
   } catch (err) {
-    console.warn("pending process cache skipped", err);
+    console.error("getCachedPendingProcess_ failed", err);
+    throw new Error(`ไม่สามารถโหลดรายการรอดำเนินการได้: ${err.message}`);
   }
-  return results;
 }
 
 function clearPendingProcessCache_() {
@@ -33,32 +43,91 @@ function clearPendingProcessCache_() {
   }
 }
 
-function loadPendingProcessFromSheets_() {
-  const sheet = ensureProcessingSheet_();
-  const values = sheet.getDataRange().getValues();
-  const list = [];
-  for (let r = 1; r < values.length; r++) {
-    const row = values[r];
-    list.push({
-      rowId: r + 1,
-      timestamp: row[0],
-      userId: row[1],
-      warrantNumber: row[2],
-      defendantName: row[3],
-      bail: row[4],
-      proposedTo: row[5],
-      caseStatus: row[6],
-      endReason: row[7],
-      reasonDetail: row[8],
-      warrantStatus: row[9],
-      syncStatus: row[10] || SYNC_STATUS_PENDING,
-      syncedAt: row[11],
-      syncError: row[12],
-      processSeq: row[13]
-    });
+function clearWarrantCache_() {
+  try {
+    const cache = CacheService.getScriptCache();
+    cache.remove(WARRANT_SEARCH_CACHE_KEY);
+  } catch (err) {
+    console.warn("failed to clear warrant search cache", err);
   }
-  list.reverse();
-  return list;
+}
+
+function getCachedWarrantSearch_(searchType, term) {
+  // ไม่ cache ถ้า term ว่าง
+  if (!term) {
+    return loadWarrantSearchFromSheets_(searchType, term);
+  }
+  
+  const cache = CacheService.getScriptCache();
+  const cacheKey = WARRANT_SEARCH_CACHE_KEY + ":" + searchType + ":" + term;
+  const cached = cache.get(cacheKey);
+  
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch (err) {
+      cache.remove(cacheKey);
+    }
+  }
+  
+  const results = loadWarrantSearchFromSheets_(searchType, term);
+  try {
+    cache.put(cacheKey, JSON.stringify(results), WARRANT_SEARCH_CACHE_TTL_SECONDS);
+  } catch (err) {
+    console.warn("warrant search cache skipped", err);
+  }
+  return results;
+}
+
+function loadPendingProcessFromSheets_() {
+  try {
+    const sheet = ensureProcessingSheet_();
+    
+    // ✅ ตรวจสอบว่า sheet มีข้อมูลหรือไม่
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) {
+      // sheet ยังไม่มีข้อมูล (มีแค่ header)
+      return [];
+    }
+    
+    // ✅ อ่านข้อมูลจากแถว 2 เป็นต้นไป (ข้ามหัวตาราง)
+    const values = sheet.getRange(2, 1, lastRow - 1, PROCESSING_HEADERS.length).getValues();
+    const list = [];
+    
+    for (let r = 0; r < values.length; r++) {
+      const row = values[r];
+      // ✅ ข้าม row ที่ว่างเปล่า
+      if (!row || !row[0]) continue;
+      
+      try {
+        list.push({
+          rowId: r + 2,  // +2 เพราะ header อยู่ row 1
+          timestamp: row[0],
+          userId: row[1],
+          warrantNumber: row[2],
+          defendantName: row[3],
+          bail: row[4],
+          proposedTo: row[5],
+          caseStatus: row[6],
+          endReason: row[7],
+          reasonDetail: row[8],
+          warrantStatus: row[9],
+          syncStatus: row[10] || SYNC_STATUS_PENDING,
+          syncedAt: row[11],
+          syncError: row[12],
+          processSeq: row[13]
+        });
+      } catch (rowErr) {
+        console.warn(`Warning: skipped row ${r + 2}: ${rowErr.message}`);
+      }
+    }
+    
+    list.reverse();
+    return list;
+  } catch (err) {
+    console.error("loadPendingProcessFromSheets_ failed", err);
+    throw new Error(`ล้มเหลวในการโหลดรายการรอดำเนินการ: ${err.message}`);
+  }
 }
 
 function loadWarrantSearchFromSheets_(searchType, term) {
@@ -118,4 +187,4 @@ function loadWarrantSearchFromSheets_(searchType, term) {
     }
   });
   return results;
-}
+}*/
